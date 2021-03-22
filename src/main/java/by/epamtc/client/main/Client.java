@@ -12,6 +12,7 @@ import java.io.*;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
+import java.util.stream.LongStream;
 
 public class Client {
     private static Socket clientSocket;
@@ -30,78 +31,63 @@ public class Client {
     private static Text text;
 
 
-    public static void main(String[] args) throws InterruptedException {
-        try {
-            clientSocket = new Socket("localhost", port);
-            reader = new BufferedReader(new InputStreamReader(System.in));
-            in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-            out = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
-            inputStream = clientSocket.getInputStream();
-            outputStream = clientSocket.getOutputStream();
-//            objIn = new ObjectInputStream(inputStream);
-//            objOut = new ObjectOutputStream(outputStream);
-//            closeSocketService = ServiceFactory.closeSocketService(objOut);
-//            getTextService = ServiceFactory.getTextService(objIn, objOut);
-//            removeSentencesService = ServiceFactory.removeSentencesService(objIn, objOut);
-
-            ObjectMapper objectMapper = new ObjectMapper();
-
-            Wrapper<UserDto> wrapper = Wrapper.<UserDto>builder()
-                    .messageType(SocketMessageType.REGISTER)
-                    .message(UserDto.builder()
-                            .userId(1L)
-                            .build())
-                    .build();
-
-            String message = objectMapper.writeValueAsString(wrapper);
-
-//            String message = "hello";
-
-
-            outputStream.write(message.getBytes(StandardCharsets.UTF_8));
-            outputStream.flush();
-
-//            while (true) {
-//                Thread.sleep(1000);
-//                System.out.println("Write your mess to server:");
-
-
-//                String messageType = reader.readLine();
-//                if (messageType.equals(MessageType.STOP_MESSAGING)) {
-//                    closeSocketService.closeSocket();
-//                    break;
-//                }
-//                if (messageType.equals(MessageType.FILE_OBJECT)){
-//                    String file = Client.class.getClassLoader().getResource(filename).getPath();
-//                    text = getTextService.getText(file);
-//                }
-//                if (messageType.equals(MessageType.REMOVE_WORDS_FIXED_LENGTH)){
-//                    System.out.println("Input word length: ");
-//                    int wordLength = Integer.parseInt(reader.readLine());
-//                    if (text != null){
-//                        Text text = removeSentencesService.removeFixedLengthWordText(Client.text, wordLength);
-//                        System.out.println(text);
-//                    }
-//                    else {
-//                        System.out.println("Text is null!!");
-//                    }
-//                }
-//            }
-
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            System.out.println("Client is close!");
+    public static void main(String[] args) {
+        LongStream.range(1, 3).forEach(index -> {
             try {
-                clientSocket.close();
-                inputStream.close();
-                outputStream.close();
+                clientSocket = new Socket("localhost", port);
+                reader = new BufferedReader(new InputStreamReader(System.in));
+                in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+                out = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
+                inputStream = clientSocket.getInputStream();
+                outputStream = clientSocket.getOutputStream();
+
+                ObjectMapper objectMapper = new ObjectMapper();
+
+                Wrapper<UserDto> wrapper1 = Wrapper.<UserDto>builder()
+                        .messageType("qwe")
+                        .message(UserDto.builder()
+                                .userId(index)
+                                .build())
+                        .build();
+
+                Wrapper<UserDto> wrapper2 = Wrapper.<UserDto>builder()
+                        .messageType(SocketMessageType.REGISTER)
+                        .message(UserDto.builder()
+                                .userId(index)
+                                .build())
+                        .build();
+
+                String message1 = objectMapper.writeValueAsString(wrapper1);
+                String message2 = objectMapper.writeValueAsString(wrapper2);
+
+                outputStream.write(message1.getBytes(StandardCharsets.UTF_8));
+                outputStream.flush();
+
+                Thread.sleep(5000);
+
+                outputStream.write(message2.getBytes(StandardCharsets.UTF_8));
+                outputStream.flush();
+
+            } catch (UnknownHostException e) {
+                e.printStackTrace();
             } catch (IOException e) {
                 e.printStackTrace();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } finally {
+                System.out.println("Client is close!");
+                try {
+                    clientSocket.close();
+                    inputStream.close();
+                    outputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
-        }
+
+
+        });
+
     }
 
 }
